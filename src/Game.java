@@ -1,13 +1,15 @@
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Game {
     
     final static int INITIAL_NUM = 3;
     final static int NUM_PER_ROUND = 2;
     final static int WIN_NUM = 2048;
+    final static Font font1 = new Font("SansSerif", Font.BOLD, 32);
+    final static Font font2 = new Font("SansSerif", Font.BOLD, 14);
+    final static String string1 = "W - UP; S - DOWN; A - LEFT; D - RIGHT";
     
     int row, col;
     int[][] board;
@@ -172,54 +174,61 @@ public class Game {
         return zeros.size() == 0;
     }
     
+    private char input() {
+        
+        while (!StdDraw.hasNextKeyTyped()) {
+            ;
+        }
+        return StdDraw.nextKeyTyped();
+    }
+    
     public void start() {
         
-        System.out.println("GAME START!!");
-        show();
+//        show();
         draw();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
+//        System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
         while (true) {
-            String act = scanner.nextLine();
-            if (act.equals("A") || act.equals("a")) {
+            char act = input();
+            if (act == 'A' || act == 'a') {
                 if (!left())
                     continue;
-            } else if (act.equals("D") || act.equals("d")) {
+            } else if (act == 'D' || act == 'd') {
                 if (!right())
                     continue;
-            } else if (act.equals("W") || act.equals("w")) {
+            } else if (act == 'W' || act == 'w') {
                 if (!up())
                     continue;
-            } else if (act.equals("S") || act.equals("s")) {
+            } else if (act == 'S' || act == 's') {
                 if (!down())
                     continue;
             } else {
                 continue;
             }
             
-            show();
+//            show();
             draw(1000);
             
             if (win) {
-                System.out.println("YOU WIN!!");
+//                System.out.println("YOU WIN!!");
+                win();
                 break;
             }
             
             if (add2(NUM_PER_ROUND)) {
                 if (fail()) {
-                    show();
+//                    show();
                     draw();
-                    System.out.println("GAME OVER!!");
+                    end();
+//                    System.out.println("GAME OVER!!");
                     break;
                 }
             }
             
-            show();
+//            show();
             draw();
-            System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
+//            System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
             
         }
-        scanner.close();
     }
     
     private void show() {
@@ -242,7 +251,7 @@ public class Game {
         StdDraw.setXscale(0, windth * 10);
         StdDraw.setYscale(0, windth * 10);
         StdDraw.setPenRadius(0.01);
-        StdDraw.setFont(new Font("SansSerif", Font.BOLD, 32));
+        StdDraw.setFont(font1);
         for (int c = 0; c < col; c++) {
             for (int r = 0; r < row; r++) {
                 double x = (windth - row + r * 2 + 1) * 5;
@@ -255,11 +264,35 @@ public class Game {
                 }
             }
         }
+        StdDraw.setFont(font2);
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(windth * 5, windth * 10.3, string1);
+        
         StdDraw.show(t);
     }
     
     private void draw() {
         draw(0);
+    }
+    
+    private void win() {
+        double w = Math.max(col, row);
+        StdDraw.setPenColor(StdDraw.BLUE);
+        StdDraw.filledRectangle(w * 5, w * 5, w * 3, w / 2);
+        StdDraw.setFont(font1);
+        StdDraw.setPenColor(StdDraw.YELLOW);
+        StdDraw.text(w * 5, w * 5, "YOU WIN!!");
+        StdDraw.show();
+    }
+    
+    private void end() {
+        double w = Math.max(col, row);
+        StdDraw.setPenColor(StdDraw.BLUE);
+        StdDraw.filledRectangle(w * 5, w * 5, w * 3, w / 2);
+        StdDraw.setFont(font1);
+        StdDraw.setPenColor(StdDraw.YELLOW);
+        StdDraw.text(w * 5, w * 5, "GAME OVER!!");
+        StdDraw.show(5000);
     }
     
     public static void main(String[] args) {
