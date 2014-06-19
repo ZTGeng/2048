@@ -5,11 +5,15 @@ import java.util.Random;
 public class Game {
     
     final static int INITIAL_NUM = 3;
-    final static int NUM_PER_ROUND = 2;
+    final static int NUM_PER_ROUND = 1;
     final static int WIN_NUM = 2048;
     final static Font font1 = new Font("SansSerif", Font.BOLD, 32);
     final static Font font2 = new Font("SansSerif", Font.BOLD, 14);
     final static String string1 = "W - UP; S - DOWN; A - LEFT; D - RIGHT";
+    final static int LEFT = 0;
+    final static int UP = 1;
+    final static int RIGHT = 2;
+    final static int DOWN = 3;
     
     int row, col;
     int[][] board;
@@ -67,61 +71,27 @@ public class Game {
         return zeroTail > 0;
     }
     
-    private boolean left() {
+    private boolean move(int d) {
         boolean changed = false;
-        int[] line = new int[row];
-        for (int c = 0; c < col; c++) {
-            for (int r = 0; r < row; r++) {
-                line[r] = board[c][r];
-            }
-            changed = merge(line) || changed;
-            for (int r = 0; r < row; r++) {
-                board[c][r] = line[r];
-            }
+        int in, out;
+        if (d % 2 == 0) {
+            out = col; in = row;
+        } else {
+            out = row; in = col;
         }
-        return changed;
-    }
-    
-    private boolean right() {
-        boolean changed = false;
-        int[] line = new int[row];
-        for (int c = 0; c < col; c++) {
-            for (int r = 0; r < row; r++) {
-                line[r] = board[c][row - r - 1];
+        int[] line = new int[in];
+        for (int o = 0; o < out; o++) {
+            for (int i = 0; i < in; i++) {
+                int l = (d < 2) ? i : in - i - 1;
+                line[i] = (d % 2 == 0) ? board[o][l] : board[l][o];
             }
             changed = merge(line) || changed;
-            for (int r = 0; r < row; r++) {
-                board[c][row - r - 1] = line[r];
-            }
-        }
-        return changed;
-    }
-    
-    private boolean up() {
-        boolean changed = false;
-        int[] line = new int[col];
-        for (int r = 0; r < row; r++) {
-            for (int c = 0; c < col; c++) {
-                line[c] = board[c][r];
-            }
-            changed = merge(line) || changed;
-            for (int c = 0; c < col; c++) {
-                board[c][r] = line[c];
-            }
-        }
-        return changed;
-    }
-    
-    private boolean down() {
-        boolean changed = false;
-        int[] line = new int[col];
-        for (int r = 0; r < row; r++) {
-            for (int c = 0; c < col; c++) {
-                line[c] = board[col - c - 1][r];
-            }
-            changed = merge(line) || changed;
-            for (int c = 0; c < col; c++) {
-                board[col - c - 1][r] = line[c];
+            for (int i = 0; i < in; i++) {
+                int l = (d < 2) ? i : in - i - 1;
+                if (d % 2 == 0)
+                    board[o][l] = line[i];
+                else
+                    board[l][o] = line[i];
             }
         }
         return changed;
@@ -135,7 +105,7 @@ public class Game {
                 backup[c][r] = board[c][r];
             }
         }
-        if (left() || up()) {
+        if (move(LEFT) || move(UP)) {
             board = backup;
             return false;
         } else {
@@ -189,21 +159,29 @@ public class Game {
 //        System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
         while (true) {
             char act = input();
-            if (act == 'A' || act == 'a') {
-                if (!left())
-                    continue;
-            } else if (act == 'D' || act == 'd') {
-                if (!right())
-                    continue;
-            } else if (act == 'W' || act == 'w') {
-                if (!up())
-                    continue;
-            } else if (act == 'S' || act == 's') {
-                if (!down())
-                    continue;
-            } else {
+            int direct = -1;
+            switch (act) {
+            case 'A':
+            case 'a':
+                direct = LEFT;
+                break;
+            case 'D':
+            case 'd':
+                direct = RIGHT;
+                break;
+            case 'W':
+            case 'w':
+                direct = UP;
+                break;
+            case 'S':
+            case 's':
+                direct = DOWN;
+                break;
+            default:
                 continue;
             }
+            if (!move(direct))
+                continue;
             
 //            show();
             draw(1000);
@@ -231,19 +209,19 @@ public class Game {
         }
     }
     
-    private void show() {
-        for (int c = 0; c < col; c++) {
-            System.out.print("|");
-            for (int r = 0; r < row; r++) {
-                System.out.printf("%4d|", board[c][r]);
-            }
-            System.out.println();
-        }
-        for (int r = 0; r < row; r++) {
-            System.out.print("-----");
-        }
-        System.out.println("-");
-    }
+//    private void show() {
+//        for (int c = 0; c < col; c++) {
+//            System.out.print("|");
+//            for (int r = 0; r < row; r++) {
+//                System.out.printf("%4d|", board[c][r]);
+//            }
+//            System.out.println();
+//        }
+//        for (int r = 0; r < row; r++) {
+//            System.out.print("-----");
+//        }
+//        System.out.println("-");
+//    }
     
     private void draw(int t) {
         StdDraw.clear();
