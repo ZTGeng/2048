@@ -10,6 +10,7 @@ public class Game {
     final static Font font1 = new Font("SansSerif", Font.BOLD, 32);
     final static Font font2 = new Font("SansSerif", Font.BOLD, 14);
     final static String string1 = "W - UP; S - DOWN; A - LEFT; D - RIGHT";
+    final static String string2 = "Press any key to exit!";
     final static int LEFT = 0;
     final static int UP = 1;
     final static int RIGHT = 2;
@@ -146,9 +147,7 @@ public class Game {
     
     private char input() {
         
-        while (!StdDraw.hasNextKeyTyped()) {
-            ;
-        }
+        while (!StdDraw.hasNextKeyTyped()) {}
         return StdDraw.nextKeyTyped();
     }
     
@@ -270,12 +269,17 @@ public class Game {
         StdDraw.setFont(font1);
         StdDraw.setPenColor(StdDraw.YELLOW);
         StdDraw.text(w * 5, w * 5, "GAME OVER!!");
-        StdDraw.show(5000);
+        StdDraw.setFont(font2);
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(w * 5, -w * 0.3, string2);
+        StdDraw.show();
+        while (!StdDraw.hasNextKeyTyped()) {}
+        System.exit(1);
     }
     
     public static void main(String[] args) {
         
-        Game g = new Game();
+        Game g = new Game(2,2);
         g.start();
         
     }
