@@ -2,11 +2,11 @@ import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Game {
+public class Game implements Runnable {
     
     final static int INITIAL_NUM = 3;
     final static int NUM_PER_ROUND = 1;
-    final static int WIN_NUM = 2048;
+    final static int WIN_NUM = 11; // 2 to 11 == 2048
     final static Font font1 = new Font("SansSerif", Font.BOLD, 32);
     final static Font font2 = new Font("SansSerif", Font.BOLD, 14);
     final static String string1 = "W - UP; S - DOWN; A - LEFT; D - RIGHT";
@@ -16,20 +16,26 @@ public class Game {
     final static int RIGHT = 2;
     final static int DOWN = 3;
     
-    int row, col;
-    int[][] board;
-    boolean win;
-    
-    public Game(int r, int c) {
+    private int row, col;
+    private int[][] board;
+    private boolean win;
+    private Drop drop;
+
+    public Game(int r, int c, Drop drop) {
         row = r;
         col = c;
         board = new int[col][row];
         win = false;
         add2(INITIAL_NUM);
+        this.drop = drop;
+        
+        double width = Math.max(col, row);
+        StdDraw.setXscale(0, width * 10);
+        StdDraw.setYscale(0, width * 10);
     }
     
-    public Game() {
-        this(4, 4);
+    public Game(Drop drop) {
+        this(4, 4, drop);
     }
     
     private boolean merge(int[] line) {
@@ -58,8 +64,8 @@ public class Game {
                 line[cur++] = hand;
                 hand = line[i];
             } else {
-                line[cur++] = hand * 2;
-                if (hand * 2 >= WIN_NUM)
+                line[cur++] = ++hand;
+                if (hand >= WIN_NUM)
                     win = true;
                 hand = -1;
             }
@@ -137,7 +143,7 @@ public class Game {
             num = zeros.size();
         for (int i = 0; i < num; i++) {
             int pos = random.nextInt(zeros.size());
-            board[zeros.get(pos)[0]][zeros.get(pos)[1]] = 2;
+            board[zeros.get(pos)[0]][zeros.get(pos)[1]] = 1;
             zeros.remove(pos);
         }
         
@@ -145,105 +151,61 @@ public class Game {
         return zeros.size() == 0;
     }
     
-    private char input() {
+    public void run() {
         
-        while (!StdDraw.hasNextKeyTyped()) {}
-        return StdDraw.nextKeyTyped();
-    }
-    
-    public void start() {
-        
-//        show();
         draw();
-//        System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
+
         while (true) {
-            char act = input();
             int direct = -1;
-            switch (act) {
-            case 'A':
-            case 'a':
-                direct = LEFT;
-                break;
-            case 'D':
-            case 'd':
-                direct = RIGHT;
-                break;
-            case 'W':
-            case 'w':
-                direct = UP;
-                break;
-            case 'S':
-            case 's':
-                direct = DOWN;
-                break;
-            default:
+//            System.out.println("Need next");
+            direct = drop.take();
+            
+            if (direct == -1)
                 continue;
-            }
+
             if (!move(direct))
                 continue;
             
-//            show();
             draw(1000);
             
             if (win) {
-//                System.out.println("YOU WIN!!");
                 win();
                 break;
             }
             
             if (add2(NUM_PER_ROUND)) {
                 if (fail()) {
-//                    show();
                     draw();
                     end();
-//                    System.out.println("GAME OVER!!");
                     break;
                 }
             }
-            
-//            show();
             draw();
-//            System.out.println("W - UP; S - DOWN; A - LEFT; D - RIGHT");
-            
         }
     }
     
-//    private void show() {
-//        for (int c = 0; c < col; c++) {
-//            System.out.print("|");
-//            for (int r = 0; r < row; r++) {
-//                System.out.printf("%4d|", board[c][r]);
-//            }
-//            System.out.println();
-//        }
-//        for (int r = 0; r < row; r++) {
-//            System.out.print("-----");
-//        }
-//        System.out.println("-");
-//    }
     
     private void draw(int t) {
         StdDraw.clear();
-        double windth = Math.max(col, row);
-        StdDraw.setXscale(0, windth * 10);
-        StdDraw.setYscale(0, windth * 10);
+        double width = Math.max(col, row);
         StdDraw.setPenRadius(0.01);
         StdDraw.setFont(font1);
         for (int c = 0; c < col; c++) {
             for (int r = 0; r < row; r++) {
-                double x = (windth - row + r * 2 + 1) * 5;
-                double y = (windth + col - c * 2 - 1) * 5;
+                double x = (width - row + r * 2 + 1) * 5;
+                double y = (width + col - c * 2 - 1) * 5;
                 StdDraw.setPenColor(StdDraw.BLACK);
                 StdDraw.square(x, y, 5);
                 if (board[c][r] != 0) {
                     StdDraw.setPenColor(StdDraw.RED);
-                    StdDraw.text(x, y, String.valueOf(board[c][r]));
+                    StdDraw.text(x, y, 
+                            String.valueOf(1 << board[c][r]));
                 }
             }
         }
         StdDraw.setFont(font2);
         StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.text(windth * 5, windth * 10.3, string1);
+        StdDraw.text(width * 5, width * 10.3, string1);
         
         StdDraw.show(t);
     }
@@ -253,35 +215,33 @@ public class Game {
     }
     
     private void win() {
-        double w = Math.max(col, row);
+        double width = Math.max(col, row);
         StdDraw.setPenColor(StdDraw.BLUE);
-        StdDraw.filledRectangle(w * 5, w * 5, w * 3, w / 2);
+        StdDraw.filledRectangle(width * 5, width * 5, width * 3, width / 2);
         StdDraw.setFont(font1);
         StdDraw.setPenColor(StdDraw.YELLOW);
-        StdDraw.text(w * 5, w * 5, "YOU WIN!!");
-        StdDraw.show();
-    }
-    
-    private void end() {
-        double w = Math.max(col, row);
-        StdDraw.setPenColor(StdDraw.BLUE);
-        StdDraw.filledRectangle(w * 5, w * 5, w * 3, w / 2);
-        StdDraw.setFont(font1);
-        StdDraw.setPenColor(StdDraw.YELLOW);
-        StdDraw.text(w * 5, w * 5, "GAME OVER!!");
+        StdDraw.text(width * 5, width * 5, "YOU WIN!!");
         StdDraw.setFont(font2);
         StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.text(w * 5, -w * 0.3, string2);
+        StdDraw.text(width * 5, -width * 0.3, string2);
         StdDraw.show();
         while (!StdDraw.hasNextKeyTyped()) {}
         System.exit(1);
     }
     
-    public static void main(String[] args) {
-        
-        Game g = new Game(2,2);
-        g.start();
-        
+    private void end() {
+        double width = Math.max(col, row);
+        StdDraw.setPenColor(StdDraw.BLUE);
+        StdDraw.filledRectangle(width * 5, width * 5, width * 3, width / 2);
+        StdDraw.setFont(font1);
+        StdDraw.setPenColor(StdDraw.YELLOW);
+        StdDraw.text(width * 5, width * 5, "GAME OVER!!");
+        StdDraw.setFont(font2);
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(width * 5, -width * 0.3, string2);
+        StdDraw.show();
+        while (!StdDraw.hasNextKeyTyped()) {}
+        System.exit(1);
     }
     
 }
