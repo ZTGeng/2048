@@ -10,7 +10,7 @@ public class Keyboard implements Runnable {
 
     @Override
     public void run() {
-        int count = 0;
+//        int count = 0;
         while (true) {
 //            System.out.println("loop: " + count++);
             drop.put();
